@@ -23,7 +23,6 @@ fstream user_file;
 fstream pass_file;
 fstream data_file, listfr_file;
 
-
 thongtin tt;
 
 void showmess();
@@ -135,7 +134,7 @@ void Login()
 				showfr();
 				break;
 			case 6:
-				replace();
+				blockfr();
 				break;
 			case 7:
 				Exit();
@@ -282,31 +281,48 @@ void detailmess()
 }
 void sendmess()
 {
-	string fri, send, inforsend;
+	string fri, send;
 	fstream you, fr;
 	int check = 0;
-	vector<string> insend;
 	currentDateTime();
-	you.open("mess" + name + ".txt", ios::app);
-friendfile:
 	cout << "input friend:";
 	cin >> fri;
-	fr.open("mess" + fri + ".txt", ios::app);
-	bool ret = fr.fail();
-	if (ret == false) {
-		cout << "friend exist" << endl;
-		cout << "send mess to friend: ";
-		cin.ignore();
-		getline(cin, send);
-		you << "I-" << name + ": " << send << " : " << dtime;
-		fr << "		" << "sender-" << name + ":" << send << " : " << dtime;
-		you.close();
-		fr.close();
+	ifstream readfile_block;
+	string line;
+	readfile_block.open("bl" + username + ".txt");
+	while (getline(readfile_block, line))
+	{
+		if (fri == line) {
+			check = 0;
+		}
+		else { check = 1; }
 	}
-	else {
-		cout << " friend don't exist";
-		goto friendfile;
+	if (check==0) {
+		cout << "|----- Fall !!! You have been Blocked ----|" << endl;
 	}
+	else
+	{
+		you.open("mess" + name + ".txt", ios::app);
+		string a;
+		fr.open("mess" + fri + ".txt", ios::app);
+		bool ret = fr.fail();
+		if (ret == false) {
+			cout << "friend exist" << endl;
+			cout << "send mess to friend: ";
+			cin.ignore();
+			getline(cin, send);
+			you << "I-" << name + ": " << send << " : " << dtime;
+			fr << "		" << "sender-" << name + ":" << send << " : " << dtime;
+			you.close();
+			fr.close();
+			cout << "|----- Gui thanh cong !!! ----|" << endl;
+		}
+		else {
+			cout << " friend don't exist";
+		}
+	}
+	readfile_block.close();
+	_getch();
 }
 
 /////////
@@ -428,7 +444,7 @@ void blockfr()
 {
 	string infor;
 	listfr_file.open("list" + username + ".txt", ios::in);
-	vector<string> vec,vc;
+	vector<string> vec, vc;
 	while (!listfr_file.eof())
 	{
 		getline(listfr_file, infor);
@@ -436,12 +452,12 @@ void blockfr()
 	}
 	cout << "friend: ";
 	vector<string>::iterator vv = vec.begin();
-	while (vv != vec.end()-1) {
+	while (vv != vec.end() - 1) {
 		vector<string> vecter1{ explode(*vv, ':') };
 		vector<string>::iterator vecter2 = vecter1.begin();
-		while (vecter2!= vecter1.end())
+		while (vecter2 != vecter1.end())
 		{
-			cout << vecter2[0] <<" ";
+			cout << vecter2[0] << " ";
 			vc.push_back(vecter2[0]);
 			break;
 		}
@@ -451,33 +467,61 @@ void blockfr()
 	cout << "friend want to delete:";
 	cin >> inputfr;
 	inputfr = inputfr + " ";
-	/*vector<string>::iterator vcc = vc.begin();
-	while (vcc != vc.end())
-	{
-		if (inputfr == vcc[0]) {
-			string str3, str1 = "bl-";
-			char *str = const_cast< char *>(str3.c_str());
-			char *strbl = const_cast< char *>(str1.c_str());
-			char *inpfr = const_cast< char *>(inputfr.c_str());
-			strcpy(str, strbl);
-			strcat(str, inpfr);
-			stringstream myStreamString;
-			myStreamString << str;
-			string myString = myStreamString.str();
-			//vcc[0].replace(vcc[0].find(inputfr), inputfr.size(), myString);
-			//cout << vcc[0];
-		}
-		vcc++;
-	}*/
 	listfr_file.close();
+	ofstream Block_File;
+	ifstream file_block;
+	Block_File.open("bl" + username + ".txt", ios::app);
+	string line;
+	int check = 0;
+	vector<string>::iterator vcc = vc.begin();
+	file_block.open("bl" + username + ".txt", ios::in);
+	file_block.seekg(0, ios::end);
+	int length = file_block.tellg();
+	if (length == 0) {
+		// ...do something with empty file...  
+		Block_File << inputfr << endl;
+		cout << "+----- Block " << inputfr << " thanh cong !!! -----+" << endl;
+	}
+	else
+	{
+		while (vcc != vc.end())
+		{
+			if (inputfr == vcc[0]) {
+				/*string str3, str1 = "bl-";
+				char *str = const_cast< char *>(str3.c_str());
+				char *strbl = const_cast< char *>(str1.c_str());
+				char *inpfr = const_cast< char *>(inputfr.c_str());
+				strcpy(str, strbl);
+				strcat(str, inpfr);
+				stringstream myStreamString;
+				myStreamString << str;
+				string myString = myStreamString.str();
+				vcc[0].replace(vcc[0].find(inputfr), inputfr.size(), myString);
+				cout << vcc[0];*/
+
+				while (getline(file_block, line)) {
+					if (inputfr == line) { check = 0; break; }
+					else { check = 1; }
+				}
+				file_block.close();
+			}
+			vcc++;
+		}
+		if (check == 0) {
+			cout << inputfr << "da trong ds block !!! -----+" << endl;
+		}
+		else {
+			Block_File << vcc[0] << endl; 
+			cout << "+----- Block " << vcc[0] << " thanh cong !!! -----+" << endl;
+		}
+	}
+	file_block.close();
+	Block_File.close();
+	_getch();
 }
 void replace()
 {
-	blockfr();
-	data_file.open("bl" + username + ".txt", ios::app);
-	data_file << "bl-" << inputfr << endl;
-	data_file.close();
-	_getch();
+	
 }
 // main
 void print_menu() {
